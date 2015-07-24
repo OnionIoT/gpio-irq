@@ -1,1 +1,1 @@
-obj-m += gpio-irq-handler.o
+obj-m += gpio-irq.o
