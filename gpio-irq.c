@@ -15,10 +15,6 @@
 #include <linux/gpio.h>
 #include <linux/interrupt.h>
 
-#include <asm/mach-ath79/ar71xx_regs.h>
-#include <asm/mach-ath79/ath79.h>
-#include <asm/mach-ath79/irq.h>
-
 #include <asm/siginfo.h>
 #include <linux/rcupdate.h>
 #include <linux/sched.h>
@@ -38,8 +34,6 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-void __iomem *ath79_gpio_base;
-
 #define DRV_NAME	"GPIO IRQ handler"
 #define FILE_NAME	"gpio-irq"
 
@@ -56,7 +50,7 @@ typedef struct
 	pid_t	processes[MAX_PROCESSES];
 } _gpio_handler;
 
-#define TOTAL_GPIO	30
+#define TOTAL_GPIO	50 // arbitrary number, but enough for may embedded SoCs (MT7688 has 0..46)
 
 static _gpio_handler	all_handlers[TOTAL_GPIO];
 
@@ -95,7 +89,7 @@ static irqreturn_t gpio_edge_interrupt(int irq, void* dev_id)
 
 		debug("Got _handler!\n");
 
-		val=(__raw_readl(ath79_gpio_base + AR71XX_GPIO_REG_IN) >> handler->gpio) & 1;
+    val = gpio_get_value(handler->gpio)!=0;
 
 		if(val != handler->last_value)
 		{
@@ -438,9 +432,7 @@ static const struct file_operations irq_fops = {
 
 static int __init mymodule_init(void)
 {
-    int i=0,j=0;
-
-	ath79_gpio_base = ioremap_nocache(AR71XX_GPIO_BASE, AR71XX_GPIO_SIZE);
+  int i=0,j=0;
 
 	for(i=0; i < TOTAL_GPIO; ++i)
 	{
